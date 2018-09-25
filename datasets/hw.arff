@@ -1,0 +1,12 @@
+@RELATION hw
+
+@ATTRIBUTE one	    Continuous
+@ATTRIBUTE two 	    Continuous
+@ATTRIBUTE three 	Continuous
+@ATTRIBUTE class 	{Zero,One}
+
+@DATA
+1,0,1,0
+1,1,0,0
+1,0,1,1
+0,1,1,1

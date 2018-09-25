@@ -1,0 +1,15 @@
+@RELATION square
+
+@ATTRIBUTE length	Continuous
+@ATTRIBUTE width 	Continuous
+@ATTRIBUTE class 	{Not Square, Square}
+
+@DATA
+.5,1,0
+1,.5,0
+.5,-1,0
+-1,.5,0
+1,1,1
+-1,-1,1
+.5,.5,1
+-.5,-.5,1

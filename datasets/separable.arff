@@ -1,0 +1,15 @@
+@RELATION happiness
+
+@ATTRIBUTE cookies	Continuous
+@ATTRIBUTE pizzas 	Continuous
+@ATTRIBUTE class 	{Not Happy,Happy}
+
+@DATA
+1,1,0
+0,1,0
+1,0,0
+.5,.5,0
+-1,-1,1
+0,-1,1
+-1,0,1
+-.5,-.5,1
