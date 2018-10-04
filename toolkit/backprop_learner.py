@@ -80,7 +80,6 @@ class BackpropLearner(SupervisedLearner):
         for l in range(self.LAYERS):
             net = self.weight_list[l].dot(inputs)
             self.act_list[l] = self.act(net)
-            # inputs = np.insert(self.act_list[l], 0, self.bias)
             inputs = np.append(self.act_list[l], self.bias)
 
         print("features",features[n][:len(features[n])//2+1])
@@ -96,23 +95,12 @@ class BackpropLearner(SupervisedLearner):
         outputs = self.act_list[self.LAYERS-1]
         diff = self.targets - outputs
         self.error_list[self.LAYERS-1] = diff * self.actPrime(outputs)
-        #last layer of weight change list
-        # act_buf = np.insert(self.act_list[self.LAYERS-1], 0, self.bias)
        
         for l in reversed(range(self.LAYERS-1)):
-            #calculate error
-            # tot = []
-            # for i in range(2):
-            #     tot.append(self.weight_list[l+1][:,i].dot(self.error_list[l+1]))
             prod = self.error_list[l+1].reshape(1,2).dot(self.weight_list[l+1][:,:self.LAYERS-1])
             prime_l = self.actPrime(self.act_list[l])
             self.error_list[l] = np.multiply(prod,prime_l).reshape(2,)
 
-            #calculate weight change
-            # act_buf = np.append(self.act_list[l-1], self.bias)
-            # self.delta_w_list[l] = self.c * (self.error_list[l].reshape(2,1) * act_buf)
-
-        #calculate weight change dependent on node output
         for l in reversed(range(self.LAYERS)):
             if l > 0: #weights dependent on node output
                 act_buf = np.append(self.act_list[l-1], self.bias)
@@ -129,13 +117,7 @@ class BackpropLearner(SupervisedLearner):
         pass
         
     def initialize_to_ex(self):
-        # weight_list each row is a node with it's incoming weights
-        # add a bias weight to each row
-        # bias_list is just a bunch of ones
         self.weight_list = [
-            # np.array([[.1,.2,-.1],[-.2,.3,-.3]]),
-            # np.array([[.1,-.2,-.3],[.2,-.1,.3]]),
-            # np.array([[.2,-.1,.3],[.1,-.2,-.3]]) ]
             np.array([[.2,-.1,.1],[.3,-.3,-.2]]),
             np.array([[-.2,-.3,.1],[-.1,.3,.2]]),
             np.array([[-.1,.3,.2],[-.2,-.3,.1]]) ]
