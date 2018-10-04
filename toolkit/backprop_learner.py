@@ -30,6 +30,7 @@ class BackpropLearner(SupervisedLearner):
         ERROR_BOUND = .02
         self.LAYERS = 3
         self.c = .1
+        self.m = 0
         self.bias = [1]
         self.input_size = 3
         self.output_size = 2
@@ -71,7 +72,7 @@ class BackpropLearner(SupervisedLearner):
             self.inputs = features[n][:len(features[n])//2+1] + self.bias
             self.targets = features[n][len(features[n])//2+1:] + labels[n]
             self.forward(features, labels, n)
-            self.error()
+            self.backward()
 
     def forward(self, features, labels, n):
         self.print_weights(self.weight_list)
@@ -90,7 +91,7 @@ class BackpropLearner(SupervisedLearner):
             print(str.format('{0:.10f}', act), end=", ")
         print("\n")
 
-    def error(self):
+    def backward(self):
         #last layer of error list
         outputs = self.act_list[self.LAYERS-1]
         diff = self.targets - outputs
@@ -102,19 +103,17 @@ class BackpropLearner(SupervisedLearner):
             self.error_list[l] = np.multiply(prod,prime_l).reshape(2,)
 
         for l in reversed(range(self.LAYERS)):
+            reshaped_error = self.error_list[l].reshape(2,1)
             if l > 0: #weights dependent on node output
                 act_buf = np.append(self.act_list[l-1], self.bias)
-                self.delta_w_list[l] = self.c * (self.error_list[l].reshape(2,1) * act_buf)
+                self.delta_w_list[l] = self.c * (reshaped_error * act_buf) + self.m * self.delta_w_list[l]
             else:   #weights dependent on inputs
-                self.delta_w_list[l] = self.c * (self.error_list[l].reshape(2,1) * self.inputs)
+                self.delta_w_list[l] = self.c * (reshaped_error * self.inputs) + self.m * self.delta_w_list[l]
 
         for l in range(len(self.weight_list)):
             self.weight_list[l] = self.weight_list[l] + self.delta_w_list[l]
         self.print_error(self.error_list)
         self.print_weights(self.weight_list)
-
-    def backward(self):
-        pass
         
     def initialize_to_ex(self):
         self.weight_list = [
@@ -126,6 +125,13 @@ class BackpropLearner(SupervisedLearner):
             np.array([[0,0,0],[0,0,0]]),
             np.array([[0,0,0],[0,0,0]]),
             np.array([[0,0,0],[0,0,0]]) ]
+
+        self.delta_prev = [
+            np.array([[0,0,0],[0,0,0]]),
+            np.array([[0,0,0],[0,0,0]]),
+            np.array([[0,0,0],[0,0,0]]) ]
+        
+
 
     def print_weights(self, weights):
         print("weights:")
