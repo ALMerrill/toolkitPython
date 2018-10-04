@@ -31,8 +31,8 @@ class PerceptronLearner(SupervisedLearner):
         output = 0
 
         MAX_EPOCHS = 1000
-        STOP_EPOCHS = 6
-        ERROR_BOUND = .01
+        STOP_EPOCHS = 5
+        ERROR_BOUND = .02
         total_epochs = 0
         epochs = 1
         err = 1
@@ -54,12 +54,8 @@ class PerceptronLearner(SupervisedLearner):
                         self.weights = least_weights
                     break
             else:
-                epochs = 1
+                epochs = 0
                 err = error_rate
-
-            # print(total_epochs, end=", ")
-            print(error_rate)
-        print(self.weights)
 
 
     def predict(self, features, labels):
