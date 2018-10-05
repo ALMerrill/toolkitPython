@@ -25,16 +25,18 @@ class BackpropLearner(SupervisedLearner):
         """
         NUM_OUTPUT_CLASSES = 3
         SCALE = 5
-        MAX_EPOCHS = 1
+        MAX_EPOCHS = 3
         STOP_EPOCHS = 5
         ERROR_BOUND = .02
-        self.LAYERS = 3
-        self.c = .1
-        self.m = 0
+        self.LAYERS = 2
+        self.c = .175
+        self.m = .9
         self.bias = [1]
-        self.input_size = 3
-        self.output_size = 2
-        self.hiddenSize = 2
+        # self.input_size = 2
+        # self.output_size = 1
+        # self.hiddenSize = 3
+        self.layerSizes = [2,3,1]
+        self.errorLayers = [3,1] 
         # self.bias_list = [
         #     np.random.randn(1,features.cols*2) / SCALE,
         #     np.random.randn(1,NUM_OUTPUT_CLASSES) / SCALE ]
@@ -47,15 +49,18 @@ class BackpropLearner(SupervisedLearner):
         #     np.ones((1,features.cols*2)),
         #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
         self.act_list = [np.ones(2),np.ones(2),np.ones(2)]
-        self.error_list = [np.ones(2),np.ones(2),np.ones(2)]
+        self.error_list = [np.ones(3),np.ones(1)]
         # self.delta_w_list = [
         #     np.ones((1,features.cols*2)),
         #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
         # self.error_list = [
         #     np.ones((1,features.cols*2)),
         #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
+        
+        self.print_weights(self.weight_list)
 
         for epochs in range(MAX_EPOCHS):
+            print("---Epoch " + str(epochs + 1) + "---")
             # training_set, training_labels, validation_set, validation_labels = self.split_data(features, labels)
             self.one_training_epoch(features.data, labels.data)
 
@@ -69,41 +74,54 @@ class BackpropLearner(SupervisedLearner):
 
     def one_training_epoch(self, features, labels):
         for n in range(len(features)):
+        # for n in range(2):
             self.inputs = features[n][:len(features[n])//2+1] + self.bias
             self.targets = features[n][len(features[n])//2+1:] + labels[n]
             self.forward(features, labels, n)
             self.backward()
 
     def forward(self, features, labels, n):
-        self.print_weights(self.weight_list)
         inputs = features[n][:len(features[n])//2+1] + self.bias
-        print(inputs)
+        print("Pattern:", inputs)
+        print("Forward propagating...")
         for l in range(self.LAYERS):
             net = self.weight_list[l].dot(inputs)
+            # print("inputs",)
+            # self.print_list(inputs)
+            # print("weights", self.weight_list[l])
+            # print("net", net)
             self.act_list[l] = self.act(net)
             inputs = np.append(self.act_list[l], self.bias)
 
-        print("features",features[n][:len(features[n])//2+1])
-        print("Inputs:", inputs)
-        print("targets:", self.targets)
         print("predicted output: ",end="")
-        for act in self.act_list[self.LAYERS - 1]:
-            print(str.format('{0:.10f}', act), end=", ")
+        for l in reversed(range(self.LAYERS)):
+            for act in self.act_list[l]:
+                print(str.format('{0:.14f}', act), end=", ")
         print("\n")
 
     def backward(self):
+        print("Back propagating...")
         #last layer of error list
         outputs = self.act_list[self.LAYERS-1]
         diff = self.targets - outputs
         self.error_list[self.LAYERS-1] = diff * self.actPrime(outputs)
        
         for l in reversed(range(self.LAYERS-1)):
-            prod = self.error_list[l+1].reshape(1,2).dot(self.weight_list[l+1][:,:self.LAYERS-1])
+            # print("outputs:",self.act_list[l])
+            # print("error_k:", self.error_list[l+1])
+            # print("weights:",self.weight_list[l+1])
+            # print("weights_jk", self.weight_list[l+1][0][:self.errorLayers[l]])
+            prod = self.error_list[l+1] * self.weight_list[l+1][0][:self.errorLayers[l]]
+            # print("prod:",prod)
             prime_l = self.actPrime(self.act_list[l])
-            self.error_list[l] = np.multiply(prod,prime_l).reshape(2,)
+            # print("prime_l",prime_l)
+            self.error_list[l] = np.multiply(prod,prime_l).reshape(self.errorLayers[l],)
+            # print("error_l:",self.error_list[l])
+        self.print_error(self.error_list)        
 
+        print("Descending Gradient...")
         for l in reversed(range(self.LAYERS)):
-            reshaped_error = self.error_list[l].reshape(2,1)
+            reshaped_error = self.error_list[l].reshape(self.errorLayers[l],1)
             if l > 0: #weights dependent on node output
                 act_buf = np.append(self.act_list[l-1], self.bias)
                 self.delta_w_list[l] = self.c * (reshaped_error * act_buf) + self.m * self.delta_w_list[l]
@@ -112,26 +130,21 @@ class BackpropLearner(SupervisedLearner):
 
         for l in range(len(self.weight_list)):
             self.weight_list[l] = self.weight_list[l] + self.delta_w_list[l]
-        self.print_error(self.error_list)
         self.print_weights(self.weight_list)
         
     def initialize_to_ex(self):
         self.weight_list = [
-            np.array([[.2,-.1,.1],[.3,-.3,-.2]]),
-            np.array([[-.2,-.3,.1],[-.1,.3,.2]]),
-            np.array([[-.1,.3,.2],[-.2,-.3,.1]]) ]
+            np.array([[-.03,.03,-.01],[.04,-.02,.01],[.03,.02,-.02]]),
+            np.array([[-.01,.03,.02,.02]]) ]
 
         self.delta_w_list = [
-            np.array([[0,0,0],[0,0,0]]),
-            np.array([[0,0,0],[0,0,0]]),
-            np.array([[0,0,0],[0,0,0]]) ]
+            np.array([[0,0,0],[0,0,0],[0,0,0]]),
+            np.array([[0,0,0,0]]) ]
 
-        self.delta_prev = [
-            np.array([[0,0,0],[0,0,0]]),
-            np.array([[0,0,0],[0,0,0]]),
-            np.array([[0,0,0],[0,0,0]]) ]
-        
-
+    def print_list(self, l):
+        for element in l:
+            print(str.format('{0:.17f}', element), end=", ")
+        print()
 
     def print_weights(self, weights):
         print("weights:")
@@ -146,7 +159,7 @@ class BackpropLearner(SupervisedLearner):
         print("error:")
         for i in range(len(error)):
             for j in range(len(error[i])):
-                print(str.format('{0:.13f}', error[i][j]), end=", ")
+                print(str.format('{0:.17f}', error[i][j]), end=", ")
             print()
 
     def split_data(self, features, labels):
