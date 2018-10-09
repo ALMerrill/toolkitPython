@@ -26,36 +26,36 @@ class BackpropLearner(SupervisedLearner):
         NUM_OUTPUT_CLASSES = 3
         SCALE = 5
         MAX_EPOCHS = 3
+        # MAX_EPOCHS = 1
         STOP_EPOCHS = 5
         ERROR_BOUND = .02
         self.LAYERS = 2
+        # self.LAYERS = 3
         self.c = .175
+        # self.c = .1
         self.m = .9
+        # self.m = 0
         self.bias = [1]
-        # self.input_size = 2
-        # self.output_size = 1
-        # self.hiddenSize = 3
         self.layerSizes = [2,3,1]
         self.errorLayers = [3,1] 
+        # self.layerSizes = [2, 2, 2, 2]
+        # self.errorLayers = [2, 2, 2]
         # self.bias_list = [
         #     np.random.randn(1,features.cols*2) / SCALE,
         #     np.random.randn(1,NUM_OUTPUT_CLASSES) / SCALE ]
-        self.weight_list = [
-            np.random.randn(features.cols+1, features.cols*2) / SCALE,
-            np.random.randn((features.cols*2)+1, NUM_OUTPUT_CLASSES) / SCALE ]
-
-        self.initialize_to_ex()
+        # self.weight_list = [
+        #     np.random.randn(features.cols+1, features.cols*2) / SCALE,
+        #     np.random.randn((features.cols*2)+1, NUM_OUTPUT_CLASSES) / SCALE ]
         # self.act_list = [
         #     np.ones((1,features.cols*2)),
         #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
-        self.act_list = [np.ones(2),np.ones(2),np.ones(2)]
-        self.error_list = [np.ones(3),np.ones(1)]
         # self.delta_w_list = [
         #     np.ones((1,features.cols*2)),
         #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
         # self.error_list = [
         #     np.ones((1,features.cols*2)),
         #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
+        self.initialize_to_ex()
         
         self.print_weights(self.weight_list)
 
@@ -111,7 +111,10 @@ class BackpropLearner(SupervisedLearner):
             # print("error_k:", self.error_list[l+1])
             # print("weights:",self.weight_list[l+1])
             # print("weights_jk", self.weight_list[l+1][0][:self.errorLayers[l]])
-            prod = self.error_list[l+1] * self.weight_list[l+1][0][:self.errorLayers[l]]
+            print("weights_l+1:",self.weight_list[l+1])
+            print("weights_l+1 without bias:",self.weight_list[l+1][:,:-1])
+            prod = self.error_list[l+1].dot(self.weight_list[l+1][:,:-1])
+            # prod = self.error_list[l+1] * self.weight_list[l+1][0][:self.errorLayers[l]]
             # print("prod:",prod)
             prime_l = self.actPrime(self.act_list[l])
             # print("prime_l",prime_l)
@@ -140,6 +143,21 @@ class BackpropLearner(SupervisedLearner):
         self.delta_w_list = [
             np.array([[0,0,0],[0,0,0],[0,0,0]]),
             np.array([[0,0,0,0]]) ]
+
+        self.act_list = [np.ones(2),np.ones(2),np.ones(2)]
+        self.error_list = [np.ones(3),np.ones(1)]
+        # self.act_list = [np.ones(2),np.ones(2),np.ones(2)]
+        # self.error_list = [np.ones(2),np.ones(2),np.ones(2)]
+        # self.weight_list = [
+        #     np.array([[.2,-.1,.1],[.3,-.3,-.2]]),
+        #     np.array([[-.2,-.3,.1],[-.1,.3,.2]]),
+        #     np.array([[-.1,.3,.2],[-.2,-.3,.1]]) ]
+
+        # self.delta_w_list = [
+        #     np.array([[0,0,0],[0,0,0]]),
+        #     np.array([[0,0,0],[0,0,0]]),
+        #     np.array([[0,0,0],[0,0,0]]) ]
+
 
     def print_list(self, l):
         for element in l:
