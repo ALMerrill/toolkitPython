@@ -41,17 +41,19 @@ class BackpropLearner(SupervisedLearner):
         # self.layerSizes = [2, 2, 2, 2]
         # self.errorLayers = [2, 2, 2]
         self.weight_list = [
-            np.random.randn(features.cols+1, features.cols*2) / SCALE,
-            np.random.randn((features.cols*2)+1, NUM_OUTPUT_CLASSES) / SCALE ]
+            np.random.randn(features.cols*2, features.cols+1) / SCALE,
+            np.random.randn(NUM_OUTPUT_CLASSES, (features.cols*2)+1) / SCALE ]
         self.act_list = [
             np.ones((1,features.cols*2)),
             np.ones((1,NUM_OUTPUT_CLASSES)) ]
         self.delta_w_list = [
-            np.ones((1,features.cols*2)),
-            np.ones((1,NUM_OUTPUT_CLASSES)) ]
+            np.ones(self.weight_list[0].shape),
+            np.ones(self.weight_list[1].shape) ]
         self.error_list = [
             np.ones((1,features.cols*2)),
             np.ones((1,NUM_OUTPUT_CLASSES)) ]
+
+        self.print_weights(self.weight_list)
         # self.initialize_to_ex()
         
         # self.print_weights(self.weight_list)
@@ -67,13 +69,14 @@ class BackpropLearner(SupervisedLearner):
         :type labels: [float]
         """
         del labels[:]
-        labels += np.argmax(self.predict_forward(features, labels))
+        self.predict_forward(features, labels)
+        labels += [np.argmax(self.act_list[-1])]
 
     def one_training_epoch(self, features, labels):
         for n in range(len(features)):
         # for n in range(2):
-            self.inputs = features[n][:len(features[n])//2+1] + self.bias
-            self.targets = features[n][len(features[n])//2+1:] + labels[n]
+            self.inputs = features[n] + self.bias
+            self.targets = labels[n]
             self.forward(features, labels, n)
             self.backward()
 
@@ -82,7 +85,7 @@ class BackpropLearner(SupervisedLearner):
         print("Pattern:", inputs)
         print("Forward propagating...")
         for l in range(self.LAYERS):
-            net = self.weight_list[l].dot(inputs)
+            net = np.matmul(self.weight_list[l], inputs)
             # print("inputs",)
             # self.print_list(inputs)
             # print("weights", self.weight_list[l])
@@ -90,20 +93,20 @@ class BackpropLearner(SupervisedLearner):
             self.act_list[l] = self.act(net)
             inputs = np.append(self.act_list[l], self.bias)
 
+        print("predicted output: ",end="")
+        for l in reversed(range(self.LAYERS)):
+            for act in self.act_list[l]:
+                print(str.format('{0:.14f}', act), end=", ")
+        print("\n")
+
     def predict_forward(self, features, labels):
         inputs = features + self.bias
-        print("Pattern_predict:", inputs)
+        print("Pattern:", inputs)
         print("Forward propagating...")
         for l in range(self.LAYERS):
-            net = self.weight_list[l].dot(inputs)
+            net = np.matmul(self.weight_list[l], inputs)
             self.act_list[l] = self.act(net)
             inputs = np.append(self.act_list[l], self.bias)
-
-        # print("predicted output: ",end="")
-        # for l in reversed(range(self.LAYERS)):
-            # for act in self.act_list[l]:
-                # print(str.format('{0:.14f}', act), end=", ")
-        # print("\n")
 
     def backward(self):
         print("Back propagating...")
@@ -128,9 +131,11 @@ class BackpropLearner(SupervisedLearner):
 
         print("Descending Gradient...")
         for l in reversed(range(self.LAYERS)):
+            print(l)
             reshaped_error = self.error_list[l].reshape(self.errorLayers[l],1)
             if l > 0: #weights dependent on node output
                 act_buf = np.append(self.act_list[l-1], self.bias)
+                prod = reshaped_error * act_buf
                 self.delta_w_list[l] = self.c * (reshaped_error * act_buf) + self.m * self.delta_w_list[l]
             else:   #weights dependent on inputs
                 self.delta_w_list[l] = self.c * (reshaped_error * self.inputs) + self.m * self.delta_w_list[l]
