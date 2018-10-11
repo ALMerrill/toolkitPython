@@ -36,33 +36,30 @@ class BackpropLearner(SupervisedLearner):
         self.m = .9
         # self.m = 0
         self.bias = [1]
-        self.layerSizes = [2,3,1]
-        self.errorLayers = [3,1] 
+        self.layerSizes = [4,8,3]
+        self.errorLayers = [8,3] 
         # self.layerSizes = [2, 2, 2, 2]
         # self.errorLayers = [2, 2, 2]
-        # self.bias_list = [
-        #     np.random.randn(1,features.cols*2) / SCALE,
-        #     np.random.randn(1,NUM_OUTPUT_CLASSES) / SCALE ]
-        # self.weight_list = [
-        #     np.random.randn(features.cols+1, features.cols*2) / SCALE,
-        #     np.random.randn((features.cols*2)+1, NUM_OUTPUT_CLASSES) / SCALE ]
-        # self.act_list = [
-        #     np.ones((1,features.cols*2)),
-        #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
-        # self.delta_w_list = [
-        #     np.ones((1,features.cols*2)),
-        #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
-        # self.error_list = [
-        #     np.ones((1,features.cols*2)),
-        #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
-        self.initialize_to_ex()
+        self.weight_list = [
+            np.random.randn(features.cols+1, features.cols*2) / SCALE,
+            np.random.randn((features.cols*2)+1, NUM_OUTPUT_CLASSES) / SCALE ]
+        self.act_list = [
+            np.ones((1,features.cols*2)),
+            np.ones((1,NUM_OUTPUT_CLASSES)) ]
+        self.delta_w_list = [
+            np.ones((1,features.cols*2)),
+            np.ones((1,NUM_OUTPUT_CLASSES)) ]
+        self.error_list = [
+            np.ones((1,features.cols*2)),
+            np.ones((1,NUM_OUTPUT_CLASSES)) ]
+        # self.initialize_to_ex()
         
-        self.print_weights(self.weight_list)
+        # self.print_weights(self.weight_list)
 
         for epochs in range(MAX_EPOCHS):
-            print("---Epoch " + str(epochs + 1) + "---")
-            # training_set, training_labels, validation_set, validation_labels = self.split_data(features, labels)
-            self.one_training_epoch(features.data, labels.data)
+            # print("---Epoch " + str(epochs + 1) + "---")
+            training_set, training_labels, validation_set, validation_labels = self.split_data(features, labels)
+            self.one_training_epoch(training_set, training_labels)
 
     def predict(self, features, labels):
         """
@@ -70,7 +67,7 @@ class BackpropLearner(SupervisedLearner):
         :type labels: [float]
         """
         del labels[:]
-        labels += self.labels
+        labels += np.argmax(self.predict_forward(features, labels))
 
     def one_training_epoch(self, features, labels):
         for n in range(len(features)):
@@ -81,7 +78,7 @@ class BackpropLearner(SupervisedLearner):
             self.backward()
 
     def forward(self, features, labels, n):
-        inputs = features[n][:len(features[n])//2+1] + self.bias
+        inputs = features[n] + self.bias
         print("Pattern:", inputs)
         print("Forward propagating...")
         for l in range(self.LAYERS):
@@ -93,11 +90,20 @@ class BackpropLearner(SupervisedLearner):
             self.act_list[l] = self.act(net)
             inputs = np.append(self.act_list[l], self.bias)
 
-        print("predicted output: ",end="")
-        for l in reversed(range(self.LAYERS)):
-            for act in self.act_list[l]:
-                print(str.format('{0:.14f}', act), end=", ")
-        print("\n")
+    def predict_forward(self, features, labels):
+        inputs = features + self.bias
+        print("Pattern_predict:", inputs)
+        print("Forward propagating...")
+        for l in range(self.LAYERS):
+            net = self.weight_list[l].dot(inputs)
+            self.act_list[l] = self.act(net)
+            inputs = np.append(self.act_list[l], self.bias)
+
+        # print("predicted output: ",end="")
+        # for l in reversed(range(self.LAYERS)):
+            # for act in self.act_list[l]:
+                # print(str.format('{0:.14f}', act), end=", ")
+        # print("\n")
 
     def backward(self):
         print("Back propagating...")
@@ -111,13 +117,11 @@ class BackpropLearner(SupervisedLearner):
             # print("error_k:", self.error_list[l+1])
             # print("weights:",self.weight_list[l+1])
             # print("weights_jk", self.weight_list[l+1][0][:self.errorLayers[l]])
-            print("weights_l+1:",self.weight_list[l+1])
-            print("weights_l+1 without bias:",self.weight_list[l+1][:,:-1])
+
+            # print("weights_l+1:",self.weight_list[l+1])
+            # print("weights_l+1 without bias:",self.weight_list[l+1][:,:-1])
             prod = self.error_list[l+1].dot(self.weight_list[l+1][:,:-1])
-            # prod = self.error_list[l+1] * self.weight_list[l+1][0][:self.errorLayers[l]]
-            # print("prod:",prod)
             prime_l = self.actPrime(self.act_list[l])
-            # print("prime_l",prime_l)
             self.error_list[l] = np.multiply(prod,prime_l).reshape(self.errorLayers[l],)
             # print("error_l:",self.error_list[l])
         self.print_error(self.error_list)        
