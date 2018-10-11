@@ -25,7 +25,7 @@ class BackpropLearner(SupervisedLearner):
         """
         NUM_OUTPUT_CLASSES = 3
         SCALE = 5
-        MAX_EPOCHS = 3
+        MAX_EPOCHS = 15
         # MAX_EPOCHS = 1
         STOP_EPOCHS = 5
         ERROR_BOUND = .02
@@ -36,31 +36,33 @@ class BackpropLearner(SupervisedLearner):
         self.m = .9
         # self.m = 0
         self.bias = [1]
-        self.layerSizes = [4,8,3]
-        self.errorLayers = [8,3] 
+        # self.layerSizes = [4,8,3]
+        # self.errorLayers = [8,3] 
+        self.layerSizes = [2,3,1]
+        self.errorLayers = [3,1]
         # self.layerSizes = [2, 2, 2, 2]
         # self.errorLayers = [2, 2, 2]
-        self.weight_list = [
-            np.random.randn(features.cols*2, features.cols+1) / SCALE,
-            np.random.randn(NUM_OUTPUT_CLASSES, (features.cols*2)+1) / SCALE ]
-        self.act_list = [
-            np.ones((1,features.cols*2)),
-            np.ones((1,NUM_OUTPUT_CLASSES)) ]
-        self.delta_w_list = [
-            np.ones(self.weight_list[0].shape),
-            np.ones(self.weight_list[1].shape) ]
-        self.error_list = [
-            np.ones((1,features.cols*2)),
-            np.ones((1,NUM_OUTPUT_CLASSES)) ]
+        # self.weight_list = [
+        #     np.random.randn(features.cols*2, features.cols+1) / SCALE,
+        #     np.random.randn(NUM_OUTPUT_CLASSES, (features.cols*2)+1) / SCALE ]
+        # self.act_list = [
+        #     np.ones((1,features.cols*2)),
+        #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
+        # self.delta_w_list = [
+        #     np.ones(self.weight_list[0].shape),
+        #     np.ones(self.weight_list[1].shape) ]
+        # self.error_list = [
+        #     np.ones((1,features.cols*2)),
+        #     np.ones((1,NUM_OUTPUT_CLASSES)) ]
 
-        self.print_weights(self.weight_list)
-        # self.initialize_to_ex()
+        self.initialize_to_ex()
         
         # self.print_weights(self.weight_list)
 
         for epochs in range(MAX_EPOCHS):
-            # print("---Epoch " + str(epochs + 1) + "---")
+            print("---Epoch " + str(epochs + 1) + "---")
             training_set, training_labels, validation_set, validation_labels = self.split_data(features, labels)
+            # self.one_training_epoch(features.data, labels.data)
             self.one_training_epoch(training_set, training_labels)
 
     def predict(self, features, labels):
@@ -74,14 +76,17 @@ class BackpropLearner(SupervisedLearner):
 
     def one_training_epoch(self, features, labels):
         for n in range(len(features)):
-        # for n in range(2):
-            self.inputs = features[n] + self.bias
-            self.targets = labels[n]
+        # for n in range(1):
+            self.inputs = features[n][:len(features[n])//2+1] + self.bias
+            self.targets = features[n][len(features[n])//2+1:] + labels[n]
+            # self.inputs = features[n] + self.bias
+            # self.targets = labels[n]
             self.forward(features, labels, n)
             self.backward()
 
     def forward(self, features, labels, n):
-        inputs = features[n] + self.bias
+        inputs = features[n][:len(features[n])//2+1] + self.bias
+        # inputs = features[n] + self.bias
         print("Pattern:", inputs)
         print("Forward propagating...")
         for l in range(self.LAYERS):
@@ -100,8 +105,8 @@ class BackpropLearner(SupervisedLearner):
         print("\n")
 
     def predict_forward(self, features, labels):
-        inputs = features + self.bias
-        print("Pattern:", inputs)
+        inputs = features[:len(features)//2+1] + self.bias
+        print("Pattern_predict:", inputs)
         print("Forward propagating...")
         for l in range(self.LAYERS):
             net = np.matmul(self.weight_list[l], inputs)
@@ -131,7 +136,6 @@ class BackpropLearner(SupervisedLearner):
 
         print("Descending Gradient...")
         for l in reversed(range(self.LAYERS)):
-            print(l)
             reshaped_error = self.error_list[l].reshape(self.errorLayers[l],1)
             if l > 0: #weights dependent on node output
                 act_buf = np.append(self.act_list[l-1], self.bias)
