@@ -79,5 +79,4 @@ class SupervisedLearner:
                     confusion.set(targ, pred, confusion.get(targ, pred)+1)
                 if pred == targ:
                     correct_count += 1
-
             return correct_count / features.rows
