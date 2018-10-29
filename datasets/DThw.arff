@@ -1,0 +1,43 @@
+% 1. Title: Pizza Quality
+%
+% 2. Number of Instances: 9
+% 
+% 3. Number of Attributes: 3 (all nominal)
+% 
+% 4. Attribute Information:
+%     -- 3 Classes
+%      0 : Bad quality pizza
+%      1 : Good quality pizza
+%      2 : Great quality pizza
+% 
+%     1. Meat: (1) no, (2) yes
+%     2. Crust: (1) deep, (2) stuffed, (3) thin
+%     3. Vegetables: (1) no, (2) yes
+% 
+% 5. Number of Missing Attribute Values:   0
+% 
+% 6. Class Distribution:
+%    1. Bad quality: 2
+%    2. Good quality: 4
+%    3. Great quality: 3
+
+@relation pizzas
+
+@attribute meat 		{no, yes}
+@attribute crust	{deep, stuffed, thin}
+@attribute vegetables	{no, yes}
+@attribute quality	{bad, good, great}
+
+@data
+%
+% 9 instances
+%
+yes,thin,no,great
+no,deep,no,bad
+no,stuffed,yes,good
+yes,stuffed,yes,great
+yes,deep,no,good
+yes,deep,yes,great
+no,thin,yes,good
+yes,deep,no,good
+no,thin,no,bad

@@ -34,14 +34,14 @@ class BackpropLearner(SupervisedLearner):
 
 
         #hyperparameters
-        self.c = .001
+        self.c = 0.00075
         self.m = .9
         self.bias = [1]
         self.act_func = 'tanh' #options: ['sigmoid', 'tanh']
-        SCALE = 20
-        MAX_EPOCHS = 1000
-        STOP_EPOCHS = 15
-        ERROR_BOUND = .1
+        SCALE = 100
+        MAX_EPOCHS = 3000
+        STOP_EPOCHS = 20
+        ERROR_BOUND = .03
         graph_error = False
 
         #keep track of the weights that produced the least error
@@ -50,6 +50,7 @@ class BackpropLearner(SupervisedLearner):
         total_epochs = 0
         err = 1
         least_error = 1
+        best_epoch = 0
 
         #graph lists
         if graph_error:
@@ -63,8 +64,11 @@ class BackpropLearner(SupervisedLearner):
             self.layerSizes = [len(self.featuresUsed),8,3]
 
         elif self.data == 'vowel':
-            self.featuresUsed = np.array([1,2,3,4,5,6,7,8,9,10,11,12])
-            self.layerSizes = [len(self.featuresUsed),26,11]
+            self.featuresUsed = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12])
+            self.layerSizes = [len(self.featuresUsed),32,11]
+
+        elif self.data == 'cancer':
+            self.featuresUsed = np.array([0,1,2,3,4,5,6,7,8])
 
         NUM_OUTPUT_CLASSES = self.layerSizes[-1]
         self.errorLayers = self.layerSizes[1:]
@@ -100,6 +104,9 @@ class BackpropLearner(SupervisedLearner):
             if error_rate < least_error:
                 least_error = error_rate
                 least_weights = deepcopy(self.weight_list)
+                best_epoch = epoch
+                print("training:",1 - self.measure_accuracy(t_set,t_labels))
+                print("validation:",error_rate)
             if abs(error_rate - err) < ERROR_BOUND:
                 epochs += 1
                 if epochs == STOP_EPOCHS:
@@ -116,6 +123,7 @@ class BackpropLearner(SupervisedLearner):
                 epochs = 0
                 err = error_rate
         print("TOTAL EPOCHS:",total_epochs)
+        print("BEST EPOCH:", best_epoch)
 
         if graph_error:
             fig, ax1 = plt.subplots()
@@ -227,6 +235,10 @@ class BackpropLearner(SupervisedLearner):
             return 1 / (1 + np.exp(-net))
         elif self.act_func == 'tanh':
             return np.tanh(net)
+        elif self.act_func == 'ReLU':
+            lessThanZero = net < 0
+            net[lessThanZero] = 0
+            return net
         else:
             raise ValueError('Invalid activation function received')
 
@@ -235,11 +247,13 @@ class BackpropLearner(SupervisedLearner):
             return out * (1 - out)
         elif self.act_func == 'tanh':
             return 1 - (np.tanh(out)**2)
+        elif self.act_func == 'ReLU':
+            greaterThanZero = out > 0
+            lessThanOrEqualToZero = out <= 0
+            out[greaterThanZero] = 1
+            out[lessThanOrEqualToZero] = 0
+            return out
         else:
             raise ValueError('Invalid activation function received')
-        
-
-    def evaluate_error(self, features, labels):
-        pass
 
 
