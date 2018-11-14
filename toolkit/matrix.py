@@ -40,7 +40,8 @@ class Matrix:
     str_to_enum = []       # array of dictionaries
     enum_to_str = []       # array of dictionaries
     dataset_name = "Untitled"
-    MISSING = float("infinity")
+    # MISSING = float("infinity")
+    MISSING = 14
 
     def __init__(self, matrix=None, row_start=None, col_start=None, row_count=None, col_count=None, arff=None):
         """
@@ -143,7 +144,7 @@ class Matrix:
                         if not val:
                             raise Exception("Missing data element in row with data '{}'".format(line))
                         else:
-                            row += [float(self.MISSING if val == "?" else self.str_to_enum[val_idx].get(val, val))]
+                            row += [float(len(self.str_to_enum[val_idx]) if val == "?" else self.str_to_enum[val_idx].get(val, val))]
 
                         val_idx += 1
 

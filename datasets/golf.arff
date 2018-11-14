@@ -1,0 +1,27 @@
+% 1. Title: Golf Decision Tree Example
+%
+%
+@relation golf
+@attribute outlook  {rainy, overcast, sunny}
+@attribute temp     {hot, mild, cool}
+@attribute humidity {high, normal}
+@attribute wind     {t, f}
+@attribute golf     {y, n}
+@data
+%
+% 14 instances
+%
+rainy,hot,high,f,n
+rainy,hot,high,t,n
+overcast,hot,high,f,y
+sunny,mild,high,f,y
+sunny,cool,normal,f,y
+sunny,cool,normal,t,n
+overcast,cool,normal,t,y
+rainy,mild,high,f,n
+rainy,cool,normal,f,y
+sunny,mild,normal,f,y
+rainy,mild,normal,t,y
+overcast,mild,high,t,y
+overcast,hot,normal,f,y
+sunny,mild,high,t,n

@@ -6,6 +6,8 @@ from .perceptron_learner import PerceptronLearner
 from .multiple_perceptron_learner import MultiplePerceptronLearner
 from .backprop_learner import BackpropLearner
 from .decision_tree_learner import DecisionTreeLearner
+from .nearest_neighbor_learner import NearestNeighborLearner
+from .clustering_learner import ClusteringLearner
 from .matrix import Matrix
 import random
 import argparse
@@ -30,9 +32,9 @@ class MLSystemManager:
             "perceptron": PerceptronLearner(),
             "multiple_perceptron": MultiplePerceptronLearner(),
             "backprop": BackpropLearner(),
-            #"neuralnet": NeuralNetLearner(),
             "decisiontree": DecisionTreeLearner(),
-            #"knn": InstanceBasedLearner()
+            "knn": NearestNeighborLearner(),
+            "cluster": ClusteringLearner()
         }
         if model in modelmap:
             return modelmap[model]
@@ -200,7 +202,7 @@ class MLSystemManager:
         parser.add_argument('-V', '--verbose', action='store_true', help='Print the confusion matrix and learner accuracy on individual class values')
         parser.add_argument('-N', '--normalize', action='store_true', help='Use normalized data')
         parser.add_argument('-R', '--seed', help="Random seed") # will give a string
-        parser.add_argument('-L', required=True, choices=['baseline', 'perceptron', 'multiple_perceptron', 'backprop', 'neuralnet', 'decisiontree', 'knn'], help='Learning Algorithm')
+        parser.add_argument('-L', required=True, choices=['baseline', 'perceptron', 'multiple_perceptron', 'backprop', 'neuralnet', 'decisiontree', 'knn', 'cluster'], help='Learning Algorithm')
         parser.add_argument('-A', '--arff', metavar='filename', required=True, help='ARFF file')
         parser.add_argument('-E', metavar=('METHOD', 'args'), required=True, nargs='+', help="Evaluation method (training | static <test_ARFF_file> | random <%%_for_training> | cross <num_folds>)")
 
