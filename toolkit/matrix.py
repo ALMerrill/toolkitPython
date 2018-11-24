@@ -87,6 +87,7 @@ class Matrix:
         self.attr_names = []
         self.str_to_enum = []
         self.enum_to_str = []
+        self.unknown = -1
         reading_data = False
 
         rows = []           # we read data into array of rows, then convert into array of columns
@@ -144,7 +145,8 @@ class Matrix:
                         if not val:
                             raise Exception("Missing data element in row with data '{}'".format(line))
                         else:
-                            row += [float(len(self.str_to_enum[val_idx]) if val == "?" else self.str_to_enum[val_idx].get(val, val))]
+                            row += [float(self.unknown if val == "?" else self.str_to_enum[val_idx].get(val, val))]
+                            # row += [float(len(self.str_to_enum[val_idx]) if val == "?" else self.str_to_enum[val_idx].get(val, val))]
 
                         val_idx += 1
 

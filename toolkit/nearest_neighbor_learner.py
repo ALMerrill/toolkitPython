@@ -32,11 +32,17 @@ class NearestNeighborLearner(SupervisedLearner):
         if 'weighted' in sys.argv:
             self.weighted = True
 
-        self.k = 5
+        self.k = 11
+
         self.training_set = np.array(features.data)
-        self.max = self.training_set.max()
+        self.max = -float('inf')
+        for instance in self.training_set:
+            instance_max = instance.max()
+            if instance_max > self.max:
+                 self.max = instance_max
         self.training_set /= self.max #normalize between 0 and 1
         self.training_labels = np.array(labels.data)
+
 
     def predict(self, features, labels):
         """
@@ -49,13 +55,13 @@ class NearestNeighborLearner(SupervisedLearner):
         labels += [self.determineOutput(features, isNominal)]
     
     def determineOutput(self, features, isNominal):
-        distances = np.sqrt(((self.training_set - features)**2).sum(axis=1)) # Euclidean
+        # distances = np.sqrt(((self.training_set - features)**2).sum(axis=1)) # Euclidean
         # distances = abs((self.training_set - features).sum(axis=1)) # Manhattan
         # distances = abs(self.training_set - features).sum(axis=1) / abs(self.training_set + features).sum(axis=1) # Bray-Curtis
         # distances =  (abs(self.training_set - features) / abs(self.training_set) + abs(features)).sum(axis=1) # Canberra
-        # distances = []
-        # for instance in self.training_set:
-        #     distance = np.sum(np.sqrt((instance - features)**2)) # Euclidean
+        distances = []
+        for instance in self.training_set:
+            distance = np.sum(np.sqrt((instance - features)**2)) # Euclidean
             # distance = np.sum(abs(instance - features)) # Manhattan
             # distance = np.max(abs(instance - features)) #Chebyshev
             # distance = np.sum(abs(instance - features)) / np.sum(abs(instance + features)) #Bray-Curtis
@@ -64,7 +70,7 @@ class NearestNeighborLearner(SupervisedLearner):
             # mag_feat = np.linalg.norm(features - np.mean(features))
             # distance = 1 - (np.dot(instance - np.mean(instance), features - np.mean(features)) / (mag_inst * mag_feat)) # Correlation
             # distance = 1 - (np.dot(instance, features) / (mag_inst * mag_feat))
-            # distances.append(distance)
+            distances.append(distance)
         if 0 in distances:
             distances[distances == 0] = float('inf')
         distances = np.array(distances)

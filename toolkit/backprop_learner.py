@@ -6,6 +6,7 @@ from .matrix import Matrix
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+from tqdm import tqdm
 from copy import deepcopy
 
 class BackpropLearner(SupervisedLearner):
@@ -31,13 +32,15 @@ class BackpropLearner(SupervisedLearner):
             self.data = 'iris'
         elif sys.argv[4] == 'datasets/vowel.arff':
             self.data = 'vowel'
+        elif sys.argv[4] == 'datasets/music.arff':
+            self.data = 'music'
 
 
         #hyperparameters
         self.c = 0.00075
         self.m = .9
         self.bias = [1]
-        self.act_func = 'tanh' #options: ['sigmoid', 'tanh']
+        self.act_func = 'sigmoid' #options: ['sigmoid', 'tanh']
         SCALE = 100
         MAX_EPOCHS = 3000
         STOP_EPOCHS = 20
@@ -70,6 +73,10 @@ class BackpropLearner(SupervisedLearner):
         elif self.data == 'cancer':
             self.featuresUsed = np.array([0,1,2,3,4,5,6,7,8])
 
+        elif self.data == 'music':
+            self.featuresUsed = np.array([0,1,2,3,4,5,6,7,8,9,10,11])
+            self.layerSizes = [len(self.featuresUsed), 32, 6]
+
         NUM_OUTPUT_CLASSES = self.layerSizes[-1]
         self.errorLayers = self.layerSizes[1:]
         self.LAYERS = len(self.errorLayers)
@@ -88,7 +95,7 @@ class BackpropLearner(SupervisedLearner):
             np.ones((1,self.layerSizes[1])),
             np.ones((1,NUM_OUTPUT_CLASSES)) ]
 
-        for epoch in range(MAX_EPOCHS):
+        for epoch in tqdm(range(MAX_EPOCHS)):
             total_epochs += 1
 
             training_set, training_labels = self.get_training_set(features, labels)
