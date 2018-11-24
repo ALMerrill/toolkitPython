@@ -27,7 +27,7 @@ class ClusteringLearner(SupervisedLearner):
         """
 
         self.k = 5
-        self.iters = 7
+        self.iters = 2
 
         self.training_set = np.delete(np.array(features.data),0,axis=1)
         features.attr_names = features.attr_names[1:]
@@ -36,8 +36,7 @@ class ClusteringLearner(SupervisedLearner):
         self.training_labels = np.array(labels.data)
 
         self.centroids = self.training_set[:5]
-        self.clusters = [[self.centroids[i]] for i in range(self.k)]
-
+        self.clusters = [np.array([self.centroids[i]]) for i in range(self.k)]
         for i in range(self.iters):
             print("***************")
             print("Iteration", i+1)
@@ -48,14 +47,12 @@ class ClusteringLearner(SupervisedLearner):
                 for j in range(len(self.centroids[i])):
                     val = self.centroids[i][j]
                     if j == len(self.centroids[i]) - 1:
-                        print(val)
+                        print("%.3f" % val)
                     else:
-                        print(val,end=", ")
+                        print("%.3f" % val, end=", ")
             print("Making Assignments")
             self.determineClusters(features)
-            self.clusters = self.recalculateCentroids()
-            assert len(self.clusters) == self.k
-            assert type(self.clusters[0]) == list
+            self.recalculateCentroids()
 
         # num_rows = features.rows
         # training_set = np.array(features.data[:int(num_rows*.8)])
@@ -86,7 +83,10 @@ class ClusteringLearner(SupervisedLearner):
             if isCentroid:
                 continue
             sse[closest_cluster] += min_dist**2
-            self.clusters[closest_cluster].append(instance)
+            # print(self.clusters[closest_cluster])
+            # print(instance)
+            self.clusters[closest_cluster] = np.append(self.clusters[closest_cluster], [instance], axis=0)
+            # print(self.clusters[closest_cluster])
             print(str(i) + "=" + str(closest_cluster), end="  ")
             if i % 10 == 9:
                 print()
@@ -118,11 +118,13 @@ class ClusteringLearner(SupervisedLearner):
         # print(centroids)
         # for centroid in centroids:
         #     centroid.tolist()
-        new_centroids = [[] for _ in range(self.k)]
-        for i, cluster in enumerate(self.clusters):
-            print('here')
-            new_centroids[i] = np.mean(cluster, axis=0)
-        return new_centroids
+        self.centroids = [np.mean(cluster, axis=0) for cluster in self.clusters]
+        self.clusters = [np.array([self.centroids[i]]) for i in range(self.k)]
+
+        # new_centroids = [np.array([]) for _ in range(self.k)]
+        # for i, cluster in enumerate(self.clusters):
+        #     new_centroids[i].append(np.mean(cluster, axis=0))
+        #     print(new_centroids[i])
 
 
     def predict(self, features, labels):
